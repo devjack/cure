@@ -1,0 +1,25 @@
+{
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/devjack/psr-queue"
+        }
+    ],
+    "require": {
+        "devjack/psr-queue": "dev-master"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^4.6",
+        "mockery/mockery": "^0.9.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Cure\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Cure\\Tests\\": "tests"
+        }
+    }
+}
