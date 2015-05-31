@@ -2,10 +2,11 @@
 
 namespace Cure\Tests\Queue;
 
+use Cure\Connector\ZmqConnector;
+use Cure\Message\SimpleMessage;
 use Cure\Queue\ZmqQueue;
 use Cure\Tests\Test;
-use Psr\Queue\MessageInterface;
-use ZMQSocket;
+use ZMQContext;
 
 /**
  * @covers Cure\Queue\ZmqQueue
@@ -13,9 +14,25 @@ use ZMQSocket;
 class ZmqQueueTest extends Test
 {
     /**
+     * @var ZmqConnector
+     */
+    protected $connector;
+
+    /**
      * @var ZmqQueue
      */
     protected $queue;
+
+    /**
+     * @var array
+     */
+    protected $config = [
+        "default" => [
+            "host"    => "127.0.0.1",
+            "port"    => 5555,
+            "timeout" => 250,
+        ],
+    ];
 
     /**
      * {@inheritdoc}
@@ -24,19 +41,20 @@ class ZmqQueueTest extends Test
     {
         parent::setUp();
 
-        /**
-         * @var ZMQSocket $pullSocket
-         */
-        $pullSocket = $this->getNewMock("ZMQSocket");
+        $this->connector = new ZmqConnector(new ZMQContext());
+        $this->connector->connect($this->config);
 
-        /**
-         * @var ZMQSocket $pushSocket
-         */
-        $pushSocket = $this->getNewMock("ZMQSocket");
+        $this->queue = $this->connector->getQueue("default");
+    }
 
-        $this->queue = new ZmqQueue(
-            "default", $pullSocket, $pushSocket
-        );
+    /**
+     * {@inheritdoc}
+     */
+    public function tearDown()
+    {
+        $this->connector->disconnect();
+
+        parent::tearDown();
     }
 
     /**
@@ -46,19 +64,9 @@ class ZmqQueueTest extends Test
     {
         // Check push of the queue.
 
-        /**
-         * @var MessageInterface $message1
-         */
-        $message1 = $this->getNewMock(
-            "Psr\\Queue\\MessageInterface"
-        );
+        $message1 = new SimpleMessage("first simple message");
 
-        /**
-         * @var MessageInterface $message2
-         */
-        $message2 = $this->getNewMock(
-            "Psr\\Queue\\MessageInterface"
-        );
+        $message2 = new SimpleMessage("second simple message");
 
         $queue = $this->queue->push($message1);
 
@@ -70,7 +78,7 @@ class ZmqQueueTest extends Test
 
         $this->queue->push($message2);
 
-        $this->assertSame(
+        $this->assertEquals(
             $message1, $this->queue->pull()
         );
     }
