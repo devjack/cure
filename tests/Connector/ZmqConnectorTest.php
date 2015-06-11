@@ -17,18 +17,26 @@ class ZmqConnectorTest extends Test
     protected $connector;
 
     /**
+     * @var array
+     */
+    protected $config = [
+        "default" => [
+            "host"    => "127.0.0.1",
+            "port"    => 5555,
+            "timeout" => 500,
+        ],
+    ];
+
+    /**
      * {@inheritdoc}
      */
     public function setUp()
     {
         parent::setUp();
 
-        /**
-         * @var ZMQContext $context
-         */
-        $context = $this->getNewMock("ZMQContext");
-
-        $this->connector = new ZmqConnector($context);
+        $this->connector = new ZmqConnector(
+            new ZMQContext()
+        );
     }
 
     /**
@@ -36,13 +44,34 @@ class ZmqConnectorTest extends Test
      */
     public function itConnects()
     {
-        $connector = $this->connector->connect([]);
+        $connector = $this->connector
+            ->connect($this->config);
 
         $this->assertSame(
             $this->connector, $connector
         );
 
         $this->assertTrue(
+            $this->connector->isConnected()
+        );
+
+        $this->connector->disconnect();
+    }
+
+    /**
+     * @test
+     */
+    public function itDisconnects()
+    {
+        $connector = $this->connector
+            ->connect($this->config)
+            ->disconnect();
+
+        $this->assertSame(
+            $this->connector, $connector
+        );
+
+        $this->assertFalse(
             $this->connector->isConnected()
         );
     }
@@ -52,10 +81,14 @@ class ZmqConnectorTest extends Test
      */
     public function itGetsQueues()
     {
+        $this->connector->connect($this->config);
+
         $queue = $this->connector->getQueue("default");
 
         $this->assertInstanceOf(
             "Psr\\Queue\\QueueInterface", $queue
         );
+
+        $this->connector->disconnect();
     }
 }

@@ -40,7 +40,9 @@ class ZmqQueue implements QueueInterface
      */
     public function push(MessageInterface $message)
     {
-        // TODO
+        $this->pushSocket->send(serialize($message));
+
+        return $this;
     }
 
     /**
@@ -48,7 +50,9 @@ class ZmqQueue implements QueueInterface
      */
     public function pull()
     {
-        // TODO
+        $message = $this->pullSocket->recv();
+
+        return unserialize($message);
     }
 
     /**
@@ -56,6 +60,6 @@ class ZmqQueue implements QueueInterface
      */
     public function getName()
     {
-        // TODO
+        return $this->name;
     }
 }
